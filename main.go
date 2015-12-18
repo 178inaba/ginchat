@@ -8,7 +8,7 @@ import (
 
 	"golang.org/x/net/websocket"
 
-	"github.com/178inaba/ginapp/model"
+	"github.com/178inaba/ginchat/model"
 	log "github.com/Sirupsen/logrus"
 	"github.com/gin-gonic/contrib/static"
 	"github.com/gin-gonic/gin"
