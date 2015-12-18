@@ -3,7 +3,6 @@ package main
 import (
 	"crypto/sha256"
 	"fmt"
-	"io"
 	"net/http"
 	"strconv"
 
@@ -13,6 +12,12 @@ import (
 	log "github.com/Sirupsen/logrus"
 	"github.com/gin-gonic/contrib/static"
 	"github.com/gin-gonic/gin"
+	"github.com/ugorji/go/codec"
+)
+
+var (
+	mh = &codec.MsgpackHandle{}
+	mp = websocket.Codec{Marshal: mpMarshal, Unmarshal: mpUnmarshal}
 )
 
 func init() {
@@ -110,5 +115,29 @@ func notFound(c *gin.Context) {
 
 // websocket
 func chatHandler(conn *websocket.Conn) {
-	io.Copy(conn, conn)
+	var err error
+	for {
+		var data string
+		err = mp.Receive(conn, &data)
+		if err != nil {
+			log.Error("receive error: ", err)
+			break
+		}
+
+		log.Debug("data: ", data)
+
+		err = mp.Send(conn, data)
+		if err != nil {
+			log.Error("send error: ", err)
+		}
+	}
+}
+
+func mpMarshal(v interface{}) (msg []byte, payloadType byte, err error) {
+	err = codec.NewEncoderBytes(&msg, mh).Encode(v)
+	return msg, websocket.BinaryFrame, err
+}
+
+func mpUnmarshal(msg []byte, payloadType byte, v interface{}) (err error) {
+	return codec.NewDecoderBytes(msg, mh).Decode(v)
 }
