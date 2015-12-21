@@ -1,6 +1,6 @@
 # ginchat
 
-# run
+## run
 
 ```bash
 $ go run main.go
